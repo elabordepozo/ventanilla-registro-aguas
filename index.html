@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ventanilla Ciudadana — Registro de Aguas Terrestres | DPRH Santiago de Cuba</title>
+<link rel="icon" href="assets/inrh_emblem.png">
+<style>
+:root{
+  --azul-oscuro:#0056A6; --azul:#2E9FE6; --azul-palido:#B3D9FF;
+  --azul-muy-oscuro:#003d75; --gris:#A7A7A7; --gris-oscuro:#2E2E2E;
+  --texto-sec:#4a5a6a; --fondo:#f2f5f9; --blanco:#fff;
+  --ok:#1e7e34; --alerta:#b00020; --sombra:0 2px 10px rgba(0,86,166,.10);
+}
+*{box-sizing:border-box}
+body{font-family:"Segoe UI",Arial,Helvetica,sans-serif;margin:0;background:var(--fondo);color:var(--gris-oscuro)}
+/* ===== Cabecera institucional ===== */
+header.top{background:#fff;border-bottom:4px solid var(--azul-oscuro);padding:12px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header.top img.logo{height:76px;width:auto}
+header.top .divisor{width:2px;align-self:stretch;background:var(--azul-palido);min-height:60px}
+header.top .titulos h1{margin:0;font-size:21px;color:var(--azul-oscuro);letter-spacing:.2px}
+header.top .titulos p{margin:5px 0 0;font-size:13px;color:var(--texto-sec)}
+header.top .titulos p strong{color:var(--azul-oscuro)}
+/* ===== Navegación ===== */
+nav.tabs{background:var(--azul-oscuro);display:flex;gap:2px;padding:0 16px;position:sticky;top:0;z-index:50;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+nav.tabs button{background:none;border:none;padding:14px 20px;font-size:15px;cursor:pointer;color:#dbe9f7;border-bottom:3px solid transparent;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
+nav.tabs button:hover{background:rgba(255,255,255,.08);color:#fff}
+nav.tabs button.activo{border-bottom-color:#fff;font-weight:700;color:#fff;background:rgba(255,255,255,.10)}
+main{max-width:1100px;margin:0 auto;padding:22px 16px 60px}
+.vista{display:none}.vista.activa{display:block;animation:aparecer .25s ease}
+@keyframes aparecer{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* ===== Tarjetas de trámites ===== */
+.grid-tramites{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-top:16px}
+.tarjeta{background:#fff;border:1px solid #dbe6f2;border-top:4px solid var(--azul);border-radius:12px;padding:20px;box-shadow:var(--sombra);display:flex;flex-direction:column;gap:10px;transition:transform .15s ease,box-shadow .15s ease}
+.tarjeta:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,86,166,.16)}
+.tarjeta .icono{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--azul),var(--azul-oscuro));display:flex;align-items:center;justify-content:center;color:#fff}
+.tarjeta h3{margin:0;font-size:16px;color:var(--azul-oscuro)}
+.tarjeta p{margin:0;font-size:13px;color:var(--texto-sec);flex:1;line-height:1.5}
+/* ===== Botones ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--azul-oscuro);color:#fff;border:none;border-radius:8px;padding:11px 22px;font-size:15px;cursor:pointer;text-decoration:none;font-family:inherit;transition:background .15s}
+.btn:hover{background:var(--azul-muy-oscuro)}
+.btn.secundario{background:#fff;color:var(--azul-oscuro);border:1px solid var(--azul-oscuro)}
+.btn.secundario:hover{background:#eaf3fd}
+.btn.peligro{background:var(--alerta)}
+.btn.peligro:hover{background:#8a001a}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+/* ===== Formularios ===== */
+fieldset{background:#fff;border:1px solid #dbe6f2;border-radius:10px;padding:18px;margin:0 0 18px;box-shadow:var(--sombra)}
+legend{font-weight:700;color:var(--azul-oscuro);padding:0 8px;font-size:16px}
+.fila{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px}
+.fila:last-child{margin-bottom:0}
+.campo{display:flex;flex-direction:column;gap:4px}
+.campo label{font-size:13px;font-weight:600}
+.campo label .req{color:var(--alerta)}
+.campo input,.campo select,.campo textarea{padding:10px 11px;border:1px solid #b9c9dd;border-radius:6px;font-size:14px;font-family:inherit;background:#fbfdff}
+.campo input:focus,.campo select:focus,.campo textarea:focus{outline:2px solid var(--azul-palido);border-color:var(--azul)}
+.campo input.invalido{border-color:var(--alerta);background:#fff5f6}
+.error-msg{font-size:12px;color:var(--alerta);display:none}
+.radios{display:flex;gap:18px;align-items:center;padding:8px 0}
+.radios label{font-weight:normal;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.doc-lista{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.doc-item{display:flex;gap:8px}
+.doc-item input{flex:1;padding:10px 11px;border:1px solid #b9c9dd;border-radius:6px;font-size:14px;font-family:inherit}
+/* ===== Sugerencias (chips) ===== */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.chip{background:#eaf3fd;border:1px solid var(--azul-palido);color:var(--azul-oscuro);border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;transition:background .15s}
+.chip:hover{background:var(--azul-palido)}
+.chip-titulo{font-size:12.5px;color:var(--texto-sec);margin:10px 0 0}
+/* ===== Bloques informativos ===== */
+.pasos{background:#fff;border:1px solid #dbe6f2;border-left:5px solid var(--azul);border-radius:10px;padding:16px 20px;margin:0 0 20px;font-size:14px;box-shadow:var(--sombra)}
+.pasos ol{margin:8px 0 0;padding-left:20px}
+.pasos li{margin-bottom:4px}
+.aviso{background:#fff8e1;border:1px solid #ffe082;border-left:5px solid #f0a000;border-radius:10px;padding:12px 16px;font-size:14px;margin-bottom:16px}
+.seccion-titulo{color:var(--azul-oscuro);font-size:20px;margin:6px 0 4px;display:flex;align-items:center;gap:10px}
+.seccion-titulo svg{flex-shrink:0}
+/* ===== Historial ===== */
+.hist-item{background:#fff;border:1px solid #dbe6f2;border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--sombra)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;background:#e3f0fd;color:var(--azul-oscuro)}
+table.reporte{width:100%;border-collapse:collapse;background:#fff;font-size:14px}
+table.reporte th,table.reporte td{border:1px solid #dbe6f2;padding:8px 10px;text-align:left}
+table.reporte th{background:var(--azul-oscuro);color:#fff}
+/* ===== Pie ===== */
+footer{background:var(--azul-muy-oscuro);color:#cfe3f5;padding:26px 20px;margin-top:10px}
+footer .pie-cont{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer .pie-id{display:flex;align-items:center;gap:12px}
+footer .pie-id img{height:44px;width:auto}
+footer .pie-id div{font-size:13px;line-height:1.5}
+footer .pie-id strong{color:#fff;font-size:14px}
+#link-admin{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.65);border-radius:10px;padding:12px 24px;font-size:15px;font-weight:600;text-decoration:none;transition:background .15s}
+#link-admin:hover{background:rgba(255,255,255,.12)}
+/* ===== Hoja oficial (vista previa / impresión / PDF) — réplica del modelo Word ===== */
+#hoja-oficial{display:none;background:#fff}
+.sheet{background:#ffffff;color:#000000;max-width:820px;margin:0 auto;padding:28px 30px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:13.5px;line-height:1.4}
+table.oficial{width:100%;border-collapse:collapse}
+table.oficial td{border:1px solid #000000;padding:6px 8px;vertical-align:top;color:#000000}
+table.oficial td.logo{width:21%;text-align:center;vertical-align:middle}
+table.oficial td.logo img{max-width:135px;height:auto}
+table.oficial td.titulo{text-align:center;font-weight:700;font-size:16px;vertical-align:middle;line-height:1.5}
+table.oficial td.sec{background:#d9d9d9;font-weight:700;text-align:center;font-size:13.5px}
+table.oficial td .et{font-weight:400}
+table.oficial td strong{font-weight:700}
+table.oficial td.chk{white-space:nowrap;text-align:center;font-weight:700;font-size:14px}
+table.oficial ol{margin:4px 0;padding-left:22px}
+table.oficial li{margin-bottom:2px}
+/* ===== Modal de confirmación y avisos ===== */
+.modal-fondo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:80;padding:18px}
+.modal-fondo.abierto{display:flex}
+.modal{background:#ffffff;border-radius:12px;max-width:450px;width:100%;padding:22px;color:#2E2E2E}
+.modal h3{margin:0 0 10px;font-size:17px;color:#0056A6}
+.modal p{font-size:14px;line-height:1.55;margin:0 0 14px}
+.modal .acciones{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#1c2b3a;color:#ffffff;padding:12px 22px;border-radius:10px;display:none;z-index:90;font-size:14px;max-width:90%;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+@media print{
+  body{background:#fff}
+  header.top,nav.tabs,main,footer,.no-print{display:none!important}
+  #hoja-oficial{display:block!important}
+  .sheet{max-width:none;padding:0}
+}
+@media(max-width:640px){
+  header.top{padding:10px 14px;gap:12px}
+  header.top img.logo{height:54px}
+  header.top .titulos h1{font-size:16px}
+  header.top .titulos p{font-size:11.5px}
+  header.top .divisor{display:none}
+  .fila{grid-template-columns:1fr}
+  nav.tabs{padding:0 8px;overflow-x:auto}
+  nav.tabs button{padding:12px 12px;font-size:14px;white-space:nowrap;flex-shrink:0}
+  .campo input,.campo select,.campo textarea{font-size:16px}
+  .btn{min-height:44px;font-size:16px}
+  .acciones .btn{flex:1 1 100%}
+  .doc-item{flex-wrap:wrap}
+  .tarjeta{padding:16px}
+  .sheet{padding:20px 14px;font-size:12.5px}
+  .hist-item{flex-direction:column;align-items:stretch}
+  footer .pie-cont{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <img class="logo" src="assets/inrh_logo.png" alt="Logo del Instituto Nacional de Recursos Hidráulicos">
+  <div class="divisor"></div>
+  <div class="titulos">
+    <h1>Ventanilla Ciudadana — Registro de Aguas Terrestres</h1>
+    <p><strong>Delegación Provincial de Recursos Hidráulicos</strong> · Santiago de Cuba · Solicitudes de autorización para inscripción</p>
+  </div>
+</header>
+<nav class="tabs no-print">
+  <button data-v="inicio" class="activo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>Inicio</button>
+  <button data-v="formulario"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>Nueva solicitud</button>
+  <button data-v="historial"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Mis solicitudes</button>
+</nav>
+<main class="no-print">
+<!-- Listas de autocompletado -->
+<datalist id="dl-cp">
+  <option value="90100">Santiago de Cuba (ciudad)</option>
+  <option value="92610">Songo-La Maya / Palma Soriano</option>
+  <option value="92700">Tercer Frente</option>
+</datalist>
+<datalist id="dl-sub">
+  <option value="OSDE Agua y Saneamiento"></option>
+  <option value="OSDE Gestión de las Aguas Terrestres"></option>
+  <option value="INRH"></option>
+  <option value="Gobierno Provincial de Santiago de Cuba"></option>
+  <option value="Empresa de Acueducto y Alcantarillado"></option>
+</datalist>
+<datalist id="dl-org">
+  <option value="INRH"></option>
+  <option value="OSDE Agua y Saneamiento"></option>
+  <option value="Gobierno Provincial de Santiago de Cuba"></option>
+</datalist>
+  <!-- INICIO -->
+  <section id="v-inicio" class="vista activa">
+    <div class="pasos">
+      <strong>¿Cómo funciona?</strong>
+      <ol>
+        <li>Elija el trámite que desea solicitar.</li>
+        <li>Llene el formulario en línea con los datos del solicitante y su representante.</li>
+        <li>Genere el PDF de la solicitud (botón <em>Imprimir / Guardar PDF</em>).</li>
+        <li>Pulse <em>Enviar por correo</em>: se abrirá su programa de correo con la solicitud lista; <strong>adjunte el PDF</strong> generado y envíelo.</li>
+      </ol>
+    </div>
+    <h2 class="seccion-titulo">Trámites disponibles</h2>
+    <div class="grid-tramites" id="grid-tramites"></div>
+  </section>
+  <!-- FORMULARIO -->
+  <section id="v-formulario" class="vista">
+    <div id="form-contenido"></div>
+  </section>
+  <!-- HISTORIAL -->
+  <section id="v-historial" class="vista">
+    <h2 class="seccion-titulo">Mis solicitudes enviadas <span style="font-size:13px;font-weight:normal;color:var(--texto-sec)">(en este dispositivo)</span></h2>
+    <div id="lista-historial"></div>
+  </section>
+  <!-- LOGIN ADMIN -->
+  <section id="v-login" class="vista">
+    <h2 class="seccion-titulo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Acceso administrador</h2>
+    <fieldset>
+      <legend>Contraseña</legend>
+      <div class="fila">
+        <div class="campo"><label>Contraseña de administrador</label>
+          <input id="login-pass" type="password" autocomplete="current-password" enterkeyhint="go"></div>
+      </div>
+      <div class="acciones">
+        <button class="btn" id="btn-login">Entrar</button>
+        <button class="btn secundario" id="btn-login-cancel">Cancelar</button>
+      </div>
+    </fieldset>
+  </section>
+  <!-- ADMIN -->
+  <section id="v-admin" class="vista">
+    <h2 class="seccion-titulo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Administración</h2>
+    <fieldset>
+      <legend>Destino de las solicitudes</legend>
+      <div class="fila">
+        <div class="campo"><label>Correo electrónico de la Delegación <span class="req">*</span></label>
+          <input id="cfg-correo" type="email" placeholder="ejemplo@hidro.gob.cu"></div>
+        <div class="campo"><label>Nombre de la entidad receptora</label>
+          <input id="cfg-entidad" type="text" placeholder="Delegación Provincial de Recursos Hidráulicos de Santiago de Cuba"></div>
+      </div>
+      <div class="acciones"><button class="btn" id="btn-guardar-cfg">Guardar</button></div>
+      <p style="font-size:13px;color:#555">Las solicitudes que los ciudadanos llenen se enviarán a este correo.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Seguridad</legend>
+      <div class="fila">
+        <div class="campo"><label>Nueva contraseña de administrador</label>
+          <input id="adm-pass" type="password" placeholder="Mínimo 6 caracteres"></div>
+      </div>
+      <div class="acciones">
+        <button class="btn secundario" id="btn-cambiar-pass">Cambiar contraseña</button>
+        <button class="btn peligro" id="btn-logout">Cerrar sesión de administrador</button>
+      </div>
+      <p style="font-size:13px;color:#555">La contraseña inicial es <strong>admin123</strong>. Cámbiela la primera vez que entre.</p>
+    </fieldset>
+  </section>
+</main>
+<footer class="no-print">
+  <div class="pie-cont">
+    <div class="pie-id">
+      <img src="assets/inrh_emblem.png" alt="Emblema INRH">
+      <div><strong>Instituto Nacional de Recursos Hidráulicos</strong><br>Delegación Provincial · Santiago de Cuba</div>
+    </div>
+    <a href="#" id="link-admin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Administración</a>
+  </div>
+</footer>
+<!-- HOJA OFICIAL PARA IMPRESIÓN -->
+<div id="hoja-oficial">
+  <div class="no-print" style="max-width:820px;margin:0 auto 12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+    <button class="btn" onclick="descargarPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Descargar PDF</button>
+    <button class="btn" onclick="enviarCorreo()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>Enviar por correo</button>
+    <button class="btn secundario" onclick="window.print()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir</button>
+    <button class="btn secundario" onclick="document.getElementById('hoja-oficial').style.display='none'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Cerrar</button>
+  </div>
+  <div class="sheet" id="sheet-contenido"></div>
+</div>
+<!-- Modal de confirmación de envío -->
+<div class="modal-fondo" id="modal-envio">
+  <div class="modal">
+    <h3>Enviar solicitud por correo</h3>
+    <p id="modal-envio-texto"></p>
+    <div class="acciones">
+      <button class="btn secundario" id="modal-envio-cancelar">Cancelar</button>
+      <button class="btn" id="modal-envio-ok">Compartir</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="assets/vendor/html2canvas.min.js"></script>
+<script src="assets/vendor/jspdf.umd.min.js"></script>
+<script>
+/* ================= ICONOS PROFESIONALES (SVG) ================= */
+const ICONS = {
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/>',
+  folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  printer:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  droplet:'<path d="M12 2.7 17.7 8.4a8 8 0 1 1-11.4 0z"/>',
+  fish:'<path d="M2 12s3.5-6 9.5-6c4 0 7 2.5 8.5 6-1.5 3.5-4.5 6-8.5 6C5.5 18 2 12 2 12z"/><path d="M20 12l2.5-3.5M20 12l2.5 3.5"/><circle cx="14" cy="10.5" r=".9"/>',
+  factory:'<path d="M2 20h20"/><path d="M4 20V9l6 3.5V9l6 3.5V4h4v16"/>',
+  recycle:'<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10"/><path d="M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/>',
+  sail:'<path d="M12 3v13"/><path d="M12 3c4.5 3.5 6.5 8 6.5 13H12"/><path d="M12 8C8.5 10 7 12.5 7 16h5"/><path d="M2 20h20l-2.5 3h-15z"/>',
+  sparkles:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3.2"/>',
+  zap:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>'
+};
+function icon(n, s){
+  s = s || 20;
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[n]||'')+'</svg>';
+}
+
+/* ================= DATOS ================= */
+const TRAMITES = [
+ {id:"acuicultura", icono:"fish", nombre:"Acuicultura",
+  tramite:"Realizar la actividad de acuicultura en embalses y otros cuerpos de agua",
+  desc:"Solicitud de autorización para realizar actividades de acuicultura en embalses y otros cuerpos de agua."},
+ {id:"vertimiento", icono:"factory", nombre:"Vertimiento de residuales líquidos",
+  tramite:"Vertimiento de Residuales líquidos",
+  desc:"Solicitud de autorización para el vertimiento de residuales líquidos."},
+ {id:"uso", icono:"droplet", nombre:"Uso de las aguas terrestres",
+  tramite:"Autorización para el uso de las aguas terrestres",
+  desc:"Solicitud de autorización para el uso de las aguas terrestres."},
+ {id:"reutilizacion", icono:"recycle", nombre:"Reutilización de aguas residuales",
+  tramite:"Reutilización de aguas residuales.",
+  desc:"Solicitud de autorización para la reutilización de aguas residuales."},
+ {id:"navegacion", icono:"sail", nombre:"Navegación en aguas superficiales",
+  tramite:"Navegación en cuerpos de aguas superficiales",
+  desc:"Solicitud de autorización para la navegación en cuerpos de aguas superficiales."},
+ {id:"fosas", icono:"sparkles", nombre:"Limpieza de fosas y tanques sépticos",
+  tramite:"Prestar los servicios limpieza de fosas y tanques sépticos y los puntos de disposición de los residuales provenientes de estos",
+  desc:"Solicitud para prestar servicios de limpieza de fosas y tanques sépticos y sus puntos de disposición."},
+ {id:"energia", icono:"zap", nombre:"Energía hidráulica",
+  tramite:"Aprovechamiento de la Energía Hidráulica",
+  desc:"Solicitud de autorización para el aprovechamiento de la energía hidráulica."}
+];
+const PROVINCIAS = ["Pinar del Río","Artemisa","La Habana","Mayabeque","Matanzas","Villa Clara","Cienfuegos","Sancti Spíritus","Ciego de Ávila","Camagüey","Las Tunas","Granma","Holguín","Santiago de Cuba","Guantánamo","Isla de la Juventud"];
+const FORMAS_GESTION = ["Estatal","Cooperativa","Mixta","Privada / MIPYME","Otra"];
+const LS_CFG="vcr_cfg", LS_HIST="vcr_hist", LS_CONT="vcr_cont";
+const CORREO_POR_DEFECTO="elabordepozo@gmail.com";
+const ENTIDAD_POR_DEFECTO="Delegación Provincial de Recursos Hidráulicos de Santiago de Cuba";
+/* Prefijos telefónicos por provincia (fuente: Correos de Cuba) */
+const COD_AREA={"Pinar del Río":"48","Artemisa":"47","La Habana":"7","Mayabeque":"47","Matanzas":"45","Villa Clara":"42","Cienfuegos":"43","Sancti Spíritus":"41","Ciego de Ávila":"33","Camagüey":"32","Las Tunas":"31","Holguín":"24","Granma":"23","Santiago de Cuba":"22","Guantánamo":"21","Isla de la Juventud":"46"};
+/* Códigos postales verificados de Santiago de Cuba (sugerencias) */
+const CP_SANTIAGO=[["90100","Santiago de Cuba (ciudad)"],["92610","Songo-La Maya / Palma Soriano"],["92700","Tercer Frente"]];
+/* Documentos frecuentes por trámite (sugerencias, no requisitos oficiales) */
+const DOC_SUGERIDOS={
+  acuicultura:["Autorización de la autoridad pesquera","Plano de ubicación del área","Estudio de impacto ambiental"],
+  vertimiento:["Caracterización de los residuales líquidos","Plano del punto de vertimiento","Certificación del CITMA","Memoria descriptiva del sistema de tratamiento"],
+  uso:["Plano de ubicación de la fuente","Certificación de disponibilidad de agua","Memoria descriptiva del uso solicitado"],
+  reutilizacion:["Caracterización de las aguas residuales","Memoria del sistema de tratamiento","Plano del área de reutilización"],
+  navegacion:["Características de las embarcaciones","Plano del cuerpo de agua","Certificación de seguridad para la navegación"],
+  fosas:["Relación de equipos y medios","Puntos de disposición autorizados","Certificación sanitaria"],
+  energia:["Estudio del potencial hidráulico","Plano de ubicación de la obra","Memoria descriptiva del aprovechamiento"]
+};
+
+/* ================= UTILIDADES ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hoyISO=()=>new Date().toISOString().slice(0,10);
+const fechaLarga=iso=>{const[y,m,d]=iso.split("-");return `${d}/${m}/${y}`;};
+function getCfg(){let s={};try{s=JSON.parse(localStorage.getItem(LS_CFG))||{}}catch(e){}
+  return {correo:s.correo||CORREO_POR_DEFECTO, entidad:s.entidad||ENTIDAD_POR_DEFECTO};}
+function setCfg(c){localStorage.setItem(LS_CFG,JSON.stringify(c))}
+function getHist(){try{return JSON.parse(localStorage.getItem(LS_HIST)||"[]")}catch(e){return[]}}
+function setHist(h){localStorage.setItem(LS_HIST,JSON.stringify(h))}
+function numSolicitud(){
+  const y=new Date().getFullYear();
+  let c={}; try{c=JSON.parse(localStorage.getItem(LS_CONT))||{}}catch(e){}
+  c[y]=(c[y]||0)+1; localStorage.setItem(LS_CONT,JSON.stringify(c));
+  return `SC-${y}-${String(c[y]).padStart(4,"0")}`;
+}
+
+/* ================= NAVEGACIÓN ================= */
+document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>irVista(b.dataset.v)));
+function irVista(v){
+  if(v==="formulario" && !$("#form-contenido").innerHTML.trim()) v="inicio"; // sin trámite elegido, ir a las tarjetas
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("activo",b.dataset.v===v));
+  document.querySelectorAll("main .vista").forEach(s=>s.classList.toggle("activa",s.id==="v-"+v));
+  if(v==="historial")renderHistorial();
+  window.scrollTo(0,0);
+}
+
+/* ================= INICIO: tarjetas ================= */
+function renderTramites(){
+  $("#grid-tramites").innerHTML=TRAMITES.map(t=>`
+    <div class="tarjeta"><div class="icono">${icon(t.icono,30)}</div><h3>${esc(t.nombre)}</h3>
+    <p>${esc(t.desc)}</p>
+    <button class="btn" onclick="abrirFormulario('${t.id}')">${icon('file',18)}Llenar solicitud</button></div>`).join("");
+}
+
+/* ================= FORMULARIO ================= */
+let tramiteActual=null;
+function campoHTML(id,etiqueta,req,tipo="text",extra=""){
+  return `<div class="campo"><label for="${id}">${etiqueta}${req?' <span class="req">*</span>':""}</label>
+    <input id="${id}" type="${tipo}" ${extra}><span class="error-msg" id="err-${id}"></span></div>`;
+}
+function abrirFormulario(id){
+  tramiteActual=TRAMITES.find(t=>t.id===id);
+  const provOpts=sel=>PROVINCIAS.map(p=>`<option ${p===sel?"selected":""}>${p}</option>`).join("");
+  $("#form-contenido").innerHTML=`
+  <div class="aviso">Está llenando la <strong>Solicitud de autorización para su inscripción en el Registro de Aguas Terrestres</strong> — <strong>${esc(tramiteActual.nombre)}</strong>. Los campos marcados con <span class="req">*</span> son obligatorios.</div>
+  <fieldset><legend>Encabezado</legend><div class="fila">
+    ${campoHTML("f-num","No. de solicitud (provisional)",false,"text",'readonly value="'+numSolicitud()+'"')}
+    ${campoHTML("f-fecha","Fecha de la solicitud",true,"date",'value="'+hoyISO()+'"')}
+  </div></fieldset>
+  <fieldset><legend>Datos del solicitante</legend>
+    <div class="fila">
+      ${campoHTML("f-nombre","Nombre y apellidos o denominación",true)}
+      <div class="campo"><label>Tipo de solicitante <span class="req">*</span></label>
+        <div class="radios"><label><input type="radio" name="f-tipo" value="PN" checked> Persona natural</label>
+        <label><input type="radio" name="f-tipo" value="PJ"> Persona jurídica</label></div></div>
+    </div>
+    <div class="fila">
+      ${campoHTML("f-domicilio","Domicilio",true)}
+      <div class="campo"><label>Forma de gestión</label><select id="f-forma">${FORMAS_GESTION.map(f=>`<option>${f}</option>`).join("")}</select></div>
+      ${campoHTML("f-ci","Carné de identidad",true,"text",'maxlength="11" placeholder="11 dígitos" inputmode="numeric"')}
+    </div>
+    <div class="fila">
+      ${campoHTML("f-subordinado","Subordinado a",false,"text",'list="dl-sub"')}
+      ${campoHTML("f-organismo","Organismo inversionista",false,"text",'list="dl-org"')}
+    </div>
+    <div class="fila">
+      <div class="campo"><label>Provincia <span class="req">*</span></label><select id="f-provincia">${provOpts("Santiago de Cuba")}</select></div>
+      ${campoHTML("f-cp","Código postal",false,"text",'maxlength="5" placeholder="5 dígitos" inputmode="numeric" list="dl-cp"')}
+      ${campoHTML("f-tel","Teléfono",true,"tel",'placeholder="Ej.: 22XXXXXX" inputmode="tel"')}
+      ${campoHTML("f-correo","Correo electrónico",true,"email",'inputmode="email"')}
+    </div>
+  </fieldset>
+  <div class="campo" id="rep-toggle" style="display:none;margin:4px 0 2px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;font-size:14.5px">
+      <input type="checkbox" id="chk-rep" style="width:20px;height:20px;accent-color:#0056A6"> ¿La solicitud la presenta un representante?
+    </label>
+  </div>
+  <fieldset id="fieldset-rep"><legend>Datos del representante</legend>
+    <div class="fila">
+      ${campoHTML("r-nombre","Nombre y apellidos",true)}
+      ${campoHTML("r-ci","Carné de identidad",true,"text",'maxlength="11" placeholder="11 dígitos" inputmode="numeric"')}
+      ${campoHTML("r-domicilio","Domicilio",true)}
+    </div>
+    <div class="fila">
+      ${campoHTML("r-doc","Resolución o documento que lo faculta",true)}
+      <div class="campo"><label>Provincia <span class="req">*</span></label><select id="r-provincia">${provOpts("Santiago de Cuba")}</select></div>
+      ${campoHTML("r-cp","Código postal",false,"text",'maxlength="5" placeholder="5 dígitos" inputmode="numeric" list="dl-cp"')}
+      ${campoHTML("r-tel","Teléfono",true,"tel",'inputmode="tel"')}
+      ${campoHTML("r-correo","Correo electrónico",false,"email",'inputmode="email"')}
+    </div>
+  </fieldset>
+  <fieldset><legend>Objeto de la solicitud</legend>
+    <div class="campo" style="margin-bottom:12px"><label>Trámite que se solicita inscribir</label>
+      <input type="text" readonly value="${esc(tramiteActual.tramite)}" style="background:#f0f4f9"></div>
+    <label style="font-size:13px;font-weight:600">Documentos aportados</label>
+    <div class="doc-lista" id="doc-lista"></div>
+    <div class="acciones"><button type="button" class="btn secundario" onclick="agregarDoc()">${icon('plus',18)}Agregar documento</button></div>
+    <p class="chip-titulo">Documentos frecuentes para este trámite (toque para agregar):</p>
+    <div class="chips" id="chips-docs"></div>
+  </fieldset>
+  <div class="acciones">
+    <button class="btn secundario" onclick="vistaPrevia()">${icon('eye',18)}Vista previa</button>
+    <button class="btn" onclick="enviarCorreo()">${icon('mail',18)}Enviar por correo</button>
+  </div>`;
+  agregarDoc();agregarDoc();
+  // chips de documentos sugeridos
+  const sug=DOC_SUGERIDOS[tramiteActual.id]||[];
+  $("#chips-docs").innerHTML=sug.map(s=>`<button type="button" class="chip">${esc(s)}</button>`).join("");
+  $("#chips-docs").querySelectorAll(".chip").forEach((b,i)=>b.addEventListener("click",()=>agregarDocSugerido(sug[i])));
+  // autocompletado de teléfono según provincia
+  $("#f-provincia").addEventListener("change",actualizarTelefono);
+  $("#r-provincia").addEventListener("change",actualizarTelefono);
+  actualizarTelefono();
+  // representante: solo se pide si es PJ o si el PN lo activa
+  document.querySelectorAll('input[name="f-tipo"]').forEach(r=>r.addEventListener("change",actualizarRep));
+  $("#chk-rep").addEventListener("change",actualizarRep);
+  actualizarRep();
+  irVista("formulario");
+}
+/* ¿Hay representante? En PJ siempre; en PN solo si el usuario lo activa */
+function conRepresentante(){
+  const t=document.querySelector('input[name="f-tipo"]:checked');
+  if(!t)return true;
+  return t.value!=="PN"||$("#chk-rep").checked;
+}
+function actualizarRep(){
+  const t=document.querySelector('input[name="f-tipo"]:checked');
+  const pn=t&&t.value==="PN";
+  $("#rep-toggle").style.display=pn?"block":"none";
+  $("#fieldset-rep").style.display=conRepresentante()?"":"none";
+}
+function agregarDocSugerido(txt){
+  agregarDoc();
+  const inputs=document.querySelectorAll("#doc-lista .doc-item input");
+  inputs[inputs.length-1].value=txt;
+}
+function actualizarTelefono(){
+  const ph=id=>{const c=COD_AREA[$(id).value]||"";return c?`Ej.: ${c}${"X".repeat(Math.max(0,8-c.length))}`:"";};
+  const p1=ph("#f-provincia"); if(p1)$("#f-tel").placeholder=p1;
+  const p2=ph("#r-provincia"); if(p2)$("#r-tel").placeholder=p2;
+}
+function agregarDoc(){
+  const d=document.createElement("div");d.className="doc-item";
+  d.innerHTML=`<input placeholder="Nombre del documento aportado (ej.: Certificación del CITMA)"><button type="button" class="btn peligro" onclick="this.parentElement.remove()" aria-label="Quitar">${icon('x',18)}</button>`;
+  $("#doc-lista").appendChild(d);
+}
+/* ================= VALIDACIÓN Y DATOS ================= */
+function marcar(id,ok,msg){
+  const i=$("#"+id),e=$("#err-"+id);
+  i.classList.toggle("invalido",!ok);
+  if(e){e.style.display=ok?"none":"block";e.textContent=msg||"";}
+  return ok;
+}
+const esCI=v=>/^\d{11}$/.test(v.trim());
+const esMail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+const esTel=v=>/^[\d\s+\-()]{8,15}$/.test(v.trim());
+function recogerDatos(){
+  const g=id=>$("#"+id)?$("#"+id).value.trim():"";
+  const tipo=document.querySelector('input[name="f-tipo"]:checked').value;
+  const docs=[...document.querySelectorAll("#doc-lista .doc-item input")].map(i=>i.value.trim()).filter(Boolean);
+  const cr=conRepresentante();
+  return {num:g("f-num"),fecha:g("f-fecha"),nombre:g("f-nombre"),tipo,forma:g("f-forma"),
+    domicilio:g("f-domicilio"),ci:g("f-ci"),subordinado:g("f-subordinado"),organismo:g("f-organismo"),
+    provincia:g("f-provincia"),cp:g("f-cp"),tel:g("f-tel"),correo:g("f-correo"),
+    rnombre:cr?g("r-nombre"):"",rci:cr?g("r-ci"):"",rdomicilio:cr?g("r-domicilio"):"",rdoc:cr?g("r-doc"):"",
+    rprovincia:cr?g("r-provincia"):"",rcp:cr?g("r-cp"):"",rtel:cr?g("r-tel"):"",rcorreo:cr?g("r-correo"):"",docs,
+    tramite:tramiteActual.tramite,tramiteNombre:tramiteActual.nombre};
+}
+function validar(d){
+  let ok=true;
+  ok=marcar("f-fecha",!!d.fecha,"Requerido")&&ok;
+  ok=marcar("f-nombre",d.nombre.length>=3,"Requerido (mín. 3 caracteres)")&&ok;
+  ok=marcar("f-domicilio",d.domicilio.length>=5,"Requerido")&&ok;
+  ok=marcar("f-ci",esCI(d.ci),"Debe tener 11 dígitos")&&ok;
+  ok=marcar("f-tel",esTel(d.tel),"Teléfono inválido")&&ok;
+  ok=marcar("f-correo",esMail(d.correo),"Correo inválido")&&ok;
+  if(d.cp)ok=marcar("f-cp",/^\d{5}$/.test(d.cp),"5 dígitos")&&ok;
+  if(conRepresentante()){
+    ok=marcar("r-nombre",d.rnombre.length>=3,"Requerido")&&ok;
+    ok=marcar("r-ci",esCI(d.rci),"Debe tener 11 dígitos")&&ok;
+    ok=marcar("r-domicilio",d.rdomicilio.length>=5,"Requerido")&&ok;
+    ok=marcar("r-doc",d.rdoc.length>=3,"Requerido")&&ok;
+    ok=marcar("r-tel",esTel(d.rtel),"Teléfono inválido")&&ok;
+    if(d.rcorreo)ok=marcar("r-correo",esMail(d.rcorreo),"Correo inválido")&&ok;
+    if(d.rcp)ok=marcar("r-cp",/^\d{5}$/.test(d.rcp),"5 dígitos")&&ok;
+  }
+  if(!ok)alert("Revise los campos marcados en rojo antes de continuar.");
+  return ok;
+}
+
+/* ================= HOJA OFICIAL (réplica fiel del modelo Word) ================= */
+function hojaHTML(d){
+  const V=v=>(v&&String(v).trim())?`<strong>${esc(v)}</strong>`:"";
+  const marca=on=>on?"☒":"☐";
+  const pn=d.tipo==="PN";
+  const docs=d.docs.length?("<ol>"+d.docs.map(x=>`<li>${esc(x)}</li>`).join("")+"</ol>"):"";
+  return `
+  <table class="oficial">
+    <tr>
+      <td class="logo"><img src="data:image/png;base64,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" alt="INRH"></td>
+      <td class="titulo" colspan="7">SOLICITUD DE AUTORIZACIÓN PARA SU INSCRIPCIÓN EN EL<br>REGISTRO DE AGUAS TERRESTRES</td>
+    </tr>
+    <tr>
+      <td colspan="4">No. DE SOLICITUD: ${V(d.num)}</td>
+      <td colspan="4">FECHA DE LA SOLICITUD: ${V(fechaLarga(d.fecha))}</td>
+    </tr>
+    <tr><td class="sec" colspan="8">DATOS DEL SOLICITANTE</td></tr>
+    <tr>
+      <td colspan="7">Nombre y Apellidos o Denominación: ${V(d.nombre)}</td>
+      <td class="chk">${marca(pn)} PN&nbsp;&nbsp;${marca(!pn)} PJ</td>
+    </tr>
+    <tr>
+      <td colspan="4">Domicilio: ${V(d.domicilio)}</td>
+      <td colspan="3">Forma de Gestión: ${V(d.forma)}</td>
+      <td>CI: ${V(d.ci)}</td>
+    </tr>
+    <tr>
+      <td colspan="4">Subordinado a: ${V(d.subordinado)}</td>
+      <td colspan="4">Organismo Inversionista: ${V(d.organismo)}</td>
+    </tr>
+    <tr>
+      <td colspan="2">Provincia: ${V(d.provincia)}</td>
+      <td colspan="2">Código Postal: ${V(d.cp)}</td>
+      <td colspan="2">Teléfono: ${V(d.tel)}</td>
+      <td colspan="2">Correo Electrónico: ${V(d.correo)}</td>
+    </tr>
+    <tr><td class="sec" colspan="8">DATOS DEL REPRESENTANTE</td></tr>
+    <tr>
+      <td colspan="6">Nombre y Apellidos: ${V(d.rnombre)}</td>
+      <td colspan="2">CI: ${V(d.rci)}</td>
+    </tr>
+    <tr>
+      <td colspan="4">Domicilio: ${V(d.rdomicilio)}</td>
+      <td colspan="4">Resolución o Documento que lo faculta: ${V(d.rdoc)}</td>
+    </tr>
+    <tr>
+      <td colspan="2">Provincia: ${V(d.rprovincia)}</td>
+      <td colspan="2">Código Postal: ${V(d.rcp)}</td>
+      <td colspan="2">Teléfono: ${V(d.rtel)}</td>
+      <td colspan="2">Correo electrónico: ${V(d.rcorreo)}</td>
+    </tr>
+    <tr><td class="sec" colspan="8">OBJETO DE LA SOLICITUD</td></tr>
+    <tr><td colspan="8">Trámite que se solicita inscribir: ${V(d.tramite)}</td></tr>
+    <tr><td colspan="8">Documentos aportados:${docs}</td></tr>
+  </table>`;
+}
+function mostrarPrevia(d){
+  $("#sheet-contenido").innerHTML=hojaHTML(d);
+  $("#hoja-oficial").style.display="block";
+  $("#hoja-oficial").scrollIntoView({behavior:"smooth"});
+}
+function vistaPrevia(){
+  const d=recogerDatos();if(!validar(d))return;
+  mostrarPrevia(d);
+}
+
+/* ================= PDF generado en el navegador ================= */
+async function generarPDFBlob(){
+  const hoja=$("#sheet-contenido");
+  if(!window.html2canvas||!window.jspdf)throw new Error("libs");
+  const canvas=await html2canvas(hoja,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false});
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({unit:"mm",format:"a4",compress:true});
+  const pageW=210,pageH=297,margin=8;
+  const imgW=pageW-margin*2;
+  const pxPorMm=canvas.width/imgW;
+  const pagePxH=Math.floor((pageH-margin*2)*pxPorMm);
+  let y=0,primera=true;
+  while(y<canvas.height){
+    const h=Math.min(pagePxH,canvas.height-y);
+    const pc=document.createElement("canvas");pc.width=canvas.width;pc.height=h;
+    pc.getContext("2d").drawImage(canvas,0,y,canvas.width,h,0,0,canvas.width,h);
+    if(!primera)pdf.addPage();
+    pdf.addImage(pc.toDataURL("image/jpeg",0.92),"JPEG",margin,margin,imgW,h/pxPorMm);
+    primera=false;y+=h;
+  }
+  return pdf.output("blob");
+}
+function descargarBlob(blob,nombre){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=nombre;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+async function descargarPDF(){
+  const d=recogerDatos();if(!validar(d))return;
+  mostrarPrevia(d);
+  toast("Generando PDF…");
+  try{
+    const blob=await generarPDFBlob();
+    descargarBlob(blob,`Solicitud-${d.num}.pdf`);
+    toast("PDF descargado");
+  }catch(e){toast("No se pudo generar el PDF");}
+}
+
+/* ================= ENVÍO POR CORREO (PDF adjunto automático) ================= */
+function cuerpoCorreo(d){
+  const L=[];
+  L.push("SOLICITUD DE AUTORIZACIÓN PARA SU INSCRIPCIÓN EN EL REGISTRO DE AGUAS TERRESTRES");
+  L.push("=".repeat(70),"");
+  L.push(`No. DE SOLICITUD: ${d.num}      FECHA DE LA SOLICITUD: ${fechaLarga(d.fecha)}`,"");
+  L.push("DATOS DEL SOLICITANTE");
+  L.push(`Nombre y Apellidos o Denominación: ${d.nombre}   [${d.tipo==="PN"?"X":" "}] PN   [${d.tipo!=="PN"?"X":" "}] PJ`);
+  L.push(`Domicilio: ${d.domicilio}`);
+  L.push(`Forma de Gestión: ${d.forma}      CI: ${d.ci}`);
+  L.push(`Subordinado a: ${d.subordinado||""}`);
+  L.push(`Organismo Inversionista: ${d.organismo||""}`);
+  L.push(`Provincia: ${d.provincia}      Código Postal: ${d.cp||""}      Teléfono: ${d.tel}`);
+  L.push(`Correo Electrónico: ${d.correo}`,"");
+  L.push("DATOS DEL REPRESENTANTE");
+  L.push(`Nombre y Apellidos: ${d.rnombre}      CI: ${d.rci}`);
+  L.push(`Domicilio: ${d.rdomicilio}`);
+  L.push(`Resolución o Documento que lo faculta: ${d.rdoc}`);
+  L.push(`Provincia: ${d.rprovincia}      Código Postal: ${d.rcp||""}      Teléfono: ${d.rtel}`);
+  L.push(`Correo electrónico: ${d.rcorreo||""}`,"");
+  L.push("OBJETO DE LA SOLICITUD");
+  L.push(`Trámite que se solicita inscribir: ${d.tramite}`);
+  L.push("Documentos aportados:");
+  d.docs.forEach((x,i)=>L.push(`  ${i+1}. ${x}`));if(!d.docs.length)L.push("  (no se listaron documentos)");
+  L.push("","Enviado desde la Ventanilla Ciudadana — Registro de Aguas Terrestres, DPRH Santiago de Cuba.");
+  return L.join("\n");
+}
+function confirmarEnvio(dest){
+  return new Promise(res=>{
+    $("#modal-envio-texto").innerHTML=
+      `Se generará el PDF oficial de la solicitud y se abrirá el menú para compartir de su teléfono.<br><br>`+
+      `Elija su aplicación de correo (por ejemplo, <strong>Gmail</strong>): el PDF se adjuntará <strong>automáticamente</strong>.<br><br>`+
+      `Destinatario: <strong>${esc(dest)}</strong> — escríbalo en el campo <em>Para</em> de su correo.`;
+    const f=$("#modal-envio");f.classList.add("abierto");
+    $("#modal-envio-ok").onclick=()=>{f.classList.remove("abierto");res(true);};
+    $("#modal-envio-cancelar").onclick=()=>{f.classList.remove("abierto");res(false);};
+  });
+}
+function guardarHistorial(d,enviada){
+  const h=getHist();
+  const reg={num:d.num,fecha:d.fecha,tramite:d.tramiteNombre,nombre:d.nombre,datos:d,enviada:!!enviada};
+  const i=h.findIndex(x=>x.num===d.num);
+  if(i>=0)h[i]=reg;else h.unshift(reg);
+  setHist(h.slice(0,100));
+}
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display="none";},3200);}
+async function enviarCorreo(){
+  const d=recogerDatos();if(!validar(d))return;
+  const dest=getCfg().correo;
+  mostrarPrevia(d);
+  if(!await confirmarEnvio(dest))return;
+  toast("Generando PDF…");
+  let blob;
+  try{blob=await generarPDFBlob();}
+  catch(e){toast("No se pudo generar el PDF");return;}
+  const fname=`Solicitud-${d.num}.pdf`;
+  const file=new File([blob],fname,{type:"application/pdf"});
+  const cuerpo=cuerpoCorreo(d);
+  const asunto=`Solicitud de inscripción en el Registro de Aguas Terrestres — ${d.tramiteNombre} — ${d.num}`;
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:asunto,text:cuerpo});
+      guardarHistorial(d,true);renderHistorial();
+      toast("Solicitud enviada");
+      return;
+    }
+  }catch(e){
+    if(e&&e.name==="AbortError"){toast("Envío cancelado");return;}
+  }
+  descargarBlob(blob,fname);
+  guardarHistorial(d,true);renderHistorial();
+  window.location.href=`mailto:${encodeURIComponent(dest)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  toast("PDF descargado: adjúntelo en su correo");
+}
+
+/* ================= HISTORIAL ================= */
+function renderHistorial(){
+  const h=getHist();
+  $("#lista-historial").innerHTML=h.length?h.map((x,i)=>`
+    <div class="hist-item"><div><span class="badge">${icon('file',14)}${esc(x.num)}</span> <strong>${esc(x.tramite)}</strong><br>
+    <span style="font-size:13px;color:var(--texto-sec)">${esc(x.nombre)} · ${fechaLarga(x.fecha)}</span></div>
+    <div class="acciones"><button class="btn secundario" onclick="reimprimir(${i})">${icon('printer',18)}Reimprimir</button></div></div>`).join("")
+    :'<p style="color:#666">Aún no ha enviado solicitudes desde este dispositivo.</p>';
+}
+function reimprimir(i){const x=getHist()[i];if(!x)return;mostrarPrevia(x.datos);}
+
+/* ================= CONFIG ================= */
+function renderCfg(){const c=getCfg();$("#cfg-correo").value=c.correo||"";$("#cfg-entidad").value=c.entidad||"";}
+$("#btn-guardar-cfg").addEventListener("click",()=>{
+  const correo=$("#cfg-correo").value.trim();
+  if(!esMail(correo)){alert("Escriba un correo válido.");return;}
+  setCfg({correo,entidad:$("#cfg-entidad").value.trim()});
+  alert("Configuración guardada.");
+});
+
+/* ================= ADMINISTRACIÓN ================= */
+const LS_PASS="vcr_pass";
+const passOK=()=>localStorage.getItem(LS_PASS)||"admin123";
+const esAdmin=()=>sessionStorage.getItem("vcr_admin")==="1";
+function pedirAdmin(){
+  if(esAdmin()){irVista("admin");return;}
+  irVista("login");
+  /* NOTA: no se hace focus() programático al campo de contraseña.
+     En Android, enfocar por código deja el campo "enfocado sin teclado" y
+     los toques posteriores no abren el teclado. El primer toque del usuario
+     debe ser quien enfoque el campo. */
+}
+$("#link-admin").addEventListener("click",e=>{e.preventDefault();pedirAdmin();});
+$("#btn-login-cancel").addEventListener("click",()=>irVista("inicio"));
+$("#btn-login").addEventListener("click",()=>{
+  if($("#login-pass").value===passOK()){
+    sessionStorage.setItem("vcr_admin","1");irVista("admin");
+  }else alert("Contraseña incorrecta.");
+});
+$("#login-pass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#btn-login").click();});
+$("#btn-logout").addEventListener("click",()=>{sessionStorage.removeItem("vcr_admin");irVista("inicio");});
+$("#btn-cambiar-pass").addEventListener("click",()=>{
+  const p=$("#adm-pass").value;
+  if(p.length<6){alert("La contraseña debe tener al menos 6 caracteres.");return;}
+  localStorage.setItem(LS_PASS,p);$("#adm-pass").value="";alert("Contraseña actualizada.");
+});
+
+/* ================= INIT ================= */
+renderTramites();renderCfg();
+</script>
+</body>
+</html>
